@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsAgent — 기사마다 다른 말, 내 판단은 어디에?</title>
+
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              bg: '#050505',
+              surface: '#121212',
+              card: '#1A1A1A',
+              border: '#2A2A2A',
+              text: '#E5E5E5',
+              subtext: '#888888',
+              blue: '#3B82F6',
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', 'sans-serif'],
+          },
+          animation: {
+            'marquee': 'marquee 25s linear infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      background-color: #050505;
+      color: #E5E5E5;
+      font-family: 'Pretendard', sans-serif;
+      word-break: keep-all;
+      overflow-x: hidden;
+    }
+    
+    /* 스크롤 애니메이션 클래스 */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-blue selection:text-white">
+
+  <!-- Header -->
+  <header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-4 bg-[#050505]/80 backdrop-blur-lg border-b border-brand-border transition-all">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      <div class="w-8 h-8 bg-white text-black font-bold text-lg flex items-center justify-center rounded-sm">N</div>
+      <span class="font-bold text-xl tracking-tight text-white hidden sm:block">NewsAgent</span>
+    </div>
+
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-brand-subtext">
+      <a href="#features" class="hover:text-white transition-colors">주요 기능</a>
+      <a href="#workflow" class="hover:text-white transition-colors">이용 과정</a>
+      <a href="#demo" class="hover:text-white transition-colors">앱 시연</a>
+    </nav>
+
+    <div id="auth-buttons" class="flex items-center gap-3 text-sm font-medium">
+      <button onclick="openAuthModal('signin')" class="h-12 px-5 text-brand-subtext hover:text-white transition-colors">로그인</button>
+      <button onclick="openAuthModal('signup')" class="h-12 px-5 bg-white text-black font-semibold rounded-sm hover:bg-gray-200 transition-colors">시작하기</button>
+    </div>
+  </header>
+
+  <main class="flex-grow pt-20">
+    <!-- 1. Hero Section -->
+    <section class="relative max-w-7xl mx-auto px-6 py-24 md:py-32 grid md:grid-cols-2 gap-12 items-center">
+      <div class="reveal">
+        <span class="text-brand-subtext text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Less Noise. More Context.</span>
+        <h1 class="text-5xl md:text-7xl font-bold leading-[1.1] tracking-tighter mb-6 text-white">
+          기사마다 다른 말.<br/>
+          <span class="text-brand-blue">내 판단은 어디에?</span>
+        </h1>
+        <p class="text-lg text-brand-subtext mb-10 leading-relaxed max-w-md">
+          댓글의 확신 말고, 근거 있는 나의 관점.<br/>
+          양극단의 감정을 걷어낸 객관적 팩트 브리핑을 경험하세요.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button onclick="openAuthModal('signup')" class="h-14 px-8 bg-white text-black font-bold rounded-sm hover:bg-gray-200 transition-all flex items-center justify-center gap-2">
+            나의 뉴스 파트너 만나기 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Hero Floating UI Mockup -->
+      <div class="relative h-[500px] w-full hidden md:block reveal animate-float">
+        <div class="absolute inset-0 bg-brand-surface border border-brand-border rounded-sm shadow-2xl p-6 overflow-hidden">
+          <div class="w-full h-1 bg-gradient-to-r from-brand-blue to-transparent absolute top-0 left-0"></div>
+          <div class="flex items-center justify-between border-b border-brand-border pb-4 mb-6">
+            <div class="w-20 h-4 bg-brand-border rounded-sm"></div>
+            <div class="w-8 h-8 bg-brand-border rounded-sm"></div>
+          </div>
+          <div class="space-y-4">
+            <div class="w-3/4 h-8 bg-brand-card rounded-sm"></div>
+            <div class="w-full h-24 bg-brand-card border border-brand-border p-4 rounded-sm flex flex-col gap-2">
+              <div class="w-1/2 h-3 bg-brand-border rounded-sm"></div>
+              <div class="w-full h-3 bg-brand-border rounded-sm"></div>
+              <div class="w-4/5 h-3 bg-brand-border rounded-sm"></div>
+            </div>
+            <div class="flex gap-4 pt-4">
+              <div class="flex-1 h-32 bg-brand-card border border-brand-border rounded-sm"></div>
+              <div class="flex-1 h-32 bg-brand-card border border-brand-border rounded-sm"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Floating Labels -->
+        <div class="absolute -left-8 top-32 bg-white text-black text-xs font-bold px-4 py-2 rounded-sm shadow-xl">같은 사건, 다른 강조점</div>
+        <div class="absolute -right-4 bottom-24 bg-brand-blue text-white text-xs font-bold px-4 py-2 rounded-sm shadow-xl">사실과 주장을 나누다</div>
+      </div>
+    </section>
+
+    <!-- 2. Infinite Ticker -->
+    <div class="w-full overflow-hidden border-y border-brand-border bg-brand-surface py-4 reveal">
+      <div class="whitespace-nowrap animate-marquee flex gap-12 text-sm font-semibold text-brand-subtext">
+        <span>AI 팩트 브리핑</span><span>•</span>
+        <span>보도 관점 비교</span><span>•</span>
+        <span>1:1 AI 질문</span><span>•</span>
+        <span>맞춤 사안 큐레이션</span><span>•</span>
+        <span>AI 팩트 브리핑</span><span>•</span>
+        <span>보도 관점 비교</span><span>•</span>
+        <span>1:1 AI 질문</span><span>•</span>
+        <span>맞춤 사안 큐레이션</span><span>•</span>
+        <span>AI 팩트 브리핑</span><span>•</span>
+        <span>보도 관점 비교</span><span>•</span>
+        <span>1:1 AI 질문</span><span>•</span>
+        <span>맞춤 사안 큐레이션</span>
+      </div>
+    </div>
+
+    <!-- 3. Features Bento Grid -->
+    <section id="features" class="max-w-7xl mx-auto px-6 py-32">
+      <div class="mb-16 reveal">
+        <h2 class="text-3xl md:text-5xl font-bold tracking-tight">많이 읽는 대신,<br/>깊이 이해하도록.</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="bg-brand-surface border border-brand-border p-8 rounded-sm reveal md:col-span-2 group hover:border-brand-subtext transition-colors">
+          <span class="text-brand-subtext text-xs font-bold block mb-4">01 / BRIEF</span>
+          <h3 class="text-2xl font-bold mb-2">핵심만 먼저.</h3>
+          <p class="text-brand-subtext text-sm mb-12">수많은 기사를 읽을 필요 없이, 사실과 주장을 구분한 타임라인을 확인하세요.</p>
+          <div class="w-full h-32 bg-[#050505] border border-brand-border rounded-sm p-4 relative overflow-hidden">
+            <div class="w-2/3 h-4 bg-brand-blue/20 rounded-sm mb-3"></div>
+            <div class="w-full h-2 bg-brand-border rounded-sm mb-2"></div>
+            <div class="w-4/5 h-2 bg-brand-border rounded-sm"></div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="bg-brand-surface border border-brand-border p-8 rounded-sm reveal group hover:border-brand-subtext transition-colors">
+          <span class="text-brand-subtext text-xs font-bold block mb-4">02 / PERSPECTIVE</span>
+          <h3 class="text-2xl font-bold mb-2">관점은 나란히.</h3>
+          <p class="text-brand-subtext text-sm mb-12">언론사별 보도 강조점을 팩트체크 기반으로 시각화합니다.</p>
+          <div class="flex h-32 items-end gap-2">
+            <div class="flex-1 bg-brand-border h-3/4 rounded-t-sm"></div>
+            <div class="flex-1 bg-brand-blue h-full rounded-t-sm"></div>
+            <div class="flex-1 bg-brand-border h-1/2 rounded-t-sm"></div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-brand-surface border border-brand-border p-8 rounded-sm reveal group hover:border-brand-subtext transition-colors">
+          <span class="text-brand-subtext text-xs font-bold block mb-4">03 / PARTNER</span>
+          <h3 class="text-2xl font-bold mb-2">1:1 논리 파트너.</h3>
+          <p class="text-brand-subtext text-sm mb-12">어려운 용어나 배경지식은 AI 파트너에게 즉시 질문하세요.</p>
+          <div class="flex flex-col gap-2 h-32 justify-end">
+            <div class="self-end w-2/3 p-3 bg-brand-border rounded-sm text-[10px] text-white">이 정책의 핵심 쟁점이 뭐야?</div>
+            <div class="self-start w-4/5 p-3 bg-brand-blue/20 border border-brand-blue/30 rounded-sm text-[10px] text-brand-blue">객관적 브리핑: 단기적 비용 부담과 장기적 이익이 상충하는 사안입니다.</div>
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-brand-surface border border-brand-border p-8 rounded-sm reveal md:col-span-2 group hover:border-brand-subtext transition-colors">
+          <span class="text-brand-subtext text-xs font-bold block mb-4">04 / CURATION</span>
+          <h3 class="text-2xl font-bold mb-2">초개인화 사안 큐레이션.</h3>
+          <p class="text-brand-subtext text-sm mb-12">내 관심사와 또래가 주목하는 핵심 이슈만 모아 정보 탐색 시간을 줄입니다.</p>
+          <div class="flex gap-3">
+            <div class="px-4 py-2 bg-brand-blue text-white text-xs font-bold rounded-sm"># IT/과학</div>
+            <div class="px-4 py-2 bg-[#050505] border border-brand-border text-brand-subtext text-xs font-bold rounded-sm"># 30대</div>
+            <div class="px-4 py-2 bg-[#050505] border border-brand-border text-brand-subtext text-xs font-bold rounded-sm"># 경제</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Workflow / Process -->
+    <section id="workflow" class="border-t border-brand-border bg-[#0a0a0a] py-32">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 reveal">
+          <h2 class="text-3xl md:text-5xl font-bold">읽기부터 질문까지, 단 하나의 흐름.</h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-12 relative">
+          <!-- 연결선 (데스크탑) -->
+          <div class="hidden md:block absolute top-12 left-1/6 right-1/6 h-[1px] bg-brand-border z-0"></div>
+          
+          <div class="relative z-10 bg-[#0a0a0a] p-4 text-center reveal">
+            <div class="w-24 h-24 mx-auto bg-brand-surface border border-brand-border flex items-center justify-center rounded-sm mb-6 shadow-xl">
+              <i data-lucide="mouse-pointer-click" class="w-8 h-8 text-white"></i>
+            </div>
+            <h4 class="text-xl font-bold mb-2">1. 사안 선택</h4>
+            <p class="text-brand-subtext text-sm">해석이 배제된 건조한 헤드라인 중 관심 있는 이슈를 고릅니다.</p>
+          </div>
+          
+          <div class="relative z-10 bg-[#0a0a0a] p-4 text-center reveal" style="transition-delay: 100ms;">
+            <div class="w-24 h-24 mx-auto bg-brand-surface border border-brand-border flex items-center justify-center rounded-sm mb-6 shadow-xl">
+              <i data-lucide="file-search" class="w-8 h-8 text-white"></i>
+            </div>
+            <h4 class="text-xl font-bold mb-2">2. 팩트 확인</h4>
+            <p class="text-brand-subtext text-sm">기사 원문과 프레임 비교, 타임라인을 통해 맥락을 파악합니다.</p>
+          </div>
+
+          <div class="relative z-10 bg-[#0a0a0a] p-4 text-center reveal" style="transition-delay: 200ms;">
+            <div class="w-24 h-24 mx-auto bg-brand-blue flex items-center justify-center rounded-sm mb-6 shadow-xl shadow-brand-blue/20">
+              <i data-lucide="brain-circuit" class="w-8 h-8 text-white"></i>
+            </div>
+            <h4 class="text-xl font-bold mb-2">3. 관점 형성</h4>
+            <p class="text-brand-subtext text-sm">AI와 문답하며 타인의 댓글 없이 오직 나만의 논리를 세웁니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Interactive Demo (기능 시연) -->
+    <section id="demo" class="max-w-5xl mx-auto px-6 py-32 border-t border-brand-border">
+      <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 reveal">
+        <div>
+          <span class="text-xs font-bold text-brand-blue tracking-[0.2em] uppercase block mb-2">Interactive Demo</span>
+          <h2 class="text-3xl font-bold">내 손안의 뉴스 에이전트</h2>
+        </div>
+        <p class="text-brand-subtext text-sm">화면 속 UI를 직접 조작하며 기능을 체험해 보세요.</p>
+      </div>
+
+      <!-- Demo Container -->
+      <div class="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-10 space-y-12 shadow-2xl reveal">
+        
+        <!-- 01. 팩트 탭 -->
+        <div>
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-brand-border">
+            <span class="font-bold text-white flex items-center gap-2"><i data-lucide="list" class="w-4 h-4 text-brand-blue"></i> AI 팩트 브리핑</span>
+            <div class="flex gap-2">
+              <button onclick="switchDemoTab('pol')" class="demo-tab-btn px-4 py-1.5 text-xs font-bold border border-brand-blue bg-brand-blue/10 text-brand-blue rounded-sm">정치</button>
+              <button onclick="switchDemoTab('eco')" class="demo-tab-btn px-4 py-1.5 text-xs font-bold border border-brand-border text-brand-subtext hover:text-white rounded-sm">경제</button>
+            </div>
+          </div>
+          <div id="demo-content-box" class="bg-[#050505] border border-brand-border p-5 rounded-sm min-h-[120px]">
+            <h4 id="demo-title" class="text-white font-bold mb-3">관련 입법 진행 현황</h4>
+            <ul id="demo-list" class="space-y-2 text-sm text-brand-subtext">
+              <li>• 정당별 쟁점 조항 합의안 제출</li>
+              <li>• 전문가 의견 수렴 청문회 진행 중</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 02. 프레임 슬라이더 -->
+        <div>
+          <div class="mb-4 pb-2 border-b border-brand-border">
+            <span class="font-bold text-white flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-blue"></i> 프레임 시각 비교</span>
+          </div>
+          <div class="bg-[#050505] border border-brand-border p-6 rounded-sm">
+            <div class="flex justify-between text-xs font-bold mb-4">
+              <span class="text-blue-400">A매체 (실효성)</span>
+              <span class="text-emerald-400">B매체 (부담 우려)</span>
+            </div>
+            <input type="range" min="0" max="100" value="50" oninput="updateSlider(this.value)" class="w-full accent-brand-blue cursor-pointer h-1 bg-brand-border rounded-sm appearance-none outline-none">
+            <p id="slider-desc" class="text-center text-xs text-brand-subtext mt-4">균형 상태 (50:50) - 두 매체의 시각이 균등하게 조율되었습니다.</p>
+          </div>
+        </div>
+
+        <!-- 03. 챗봇 -->
+        <div>
+          <div class="mb-4 pb-2 border-b border-brand-border">
+            <span class="font-bold text-white flex items-center gap-2"><i data-lucide="message-square-text" class="w-4 h-4 text-brand-blue"></i> 1:1 파트너 질문</span>
+          </div>
+          <div class="bg-[#050505] border border-brand-border p-4 rounded-sm">
+            <div class="flex gap-2 mb-4">
+              <button onclick="runChatSim('이 법안의 과거 유사 사례는?')" class="px-3 py-1.5 bg-brand-card border border-brand-border text-xs text-brand-subtext hover:text-white rounded-sm">이 법안의 과거 유사 사례는?</button>
+              <button onclick="runChatSim('핵심 쟁점 3줄 요약해줘')" class="px-3 py-1.5 bg-brand-card border border-brand-border text-xs text-brand-subtext hover:text-white rounded-sm">핵심 쟁점 3줄 요약해줘</button>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="demo-chat-input" placeholder="직접 질문을 입력해보세요." class="flex-grow bg-brand-surface border border-brand-border px-4 py-3 text-sm text-white rounded-sm focus:outline-none focus:border-brand-blue">
+              <button onclick="runChatSim()" class="h-[46px] px-6 bg-brand-blue text-white font-bold text-sm rounded-sm hover:bg-blue-600 transition-colors">전송</button>
+            </div>
+            <div id="demo-chat-result" class="mt-4 p-4 bg-brand-surface border border-brand-border/50 text-sm text-brand-subtext rounded-sm min-h-[80px] hidden">
+              <!-- 타이핑 결과 노출 영역 -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 6. Final CTA -->
+    <section class="border-t border-brand-border py-32 text-center reveal">
+      <h2 class="text-3xl font-bold mb-6">판단은, 사용자님의 몫.</h2>
+      <p class="text-brand-subtext mb-10">그 앞의 정리는 뉴스에이전트가 돕겠습니다.</p>
+      <button onclick="openAuthModal('signup')" class="h-14 px-10 bg-white text-black font-bold rounded-sm hover:bg-gray-200 transition-transform hover:-translate-y-1">
+        가입하고 시작하기
+      </button>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-brand-border py-12 px-6 bg-[#050505]">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-brand-subtext font-medium">
+      <div>
+        <span class="font-bold text-white text-sm">NewsAgent</span><span class="ml-2">1:1 AI NEWS PARTNER</span>
+      </div>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-white">서비스 약관</a>
+        <a href="#" class="hover:text-white">개인정보처리방침</a>
+        <span>© 2026 NewsAgent.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Auth Modal (루브릭 A.3 폼 검증 구현) -->
+  <div id="auth-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-brand-surface border border-brand-border w-full max-w-md p-8 rounded-sm shadow-2xl relative transform scale-95 transition-transform duration-300" id="auth-modal-content">
+      <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-brand-subtext hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <h2 id="modal-title" class="text-2xl font-bold mb-8 text-white">시작하기</h2>
+
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-5">
+        <div>
+          <label class="block text-xs font-bold text-brand-subtext mb-2">이메일</label>
+          <input type="email" id="auth-email" required class="h-12 w-full bg-[#050505] border border-brand-border px-4 text-sm text-white rounded-sm focus:outline-none focus:border-brand-blue transition-colors">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-brand-subtext mb-2">비밀번호 (6자리 이상)</label>
+          <input type="password" id="auth-password" required minlength="6" class="h-12 w-full bg-[#050505] border border-brand-border px-4 text-sm text-white rounded-sm focus:outline-none focus:border-brand-blue transition-colors">
+        </div>
+
+        <!-- 회원가입 전용 온보딩 필드 -->
+        <div id="signup-fields" class="space-y-5 pt-2 hidden">
+          <div class="h-[1px] w-full bg-brand-border mb-4"></div>
+          <div>
+            <label class="block text-xs font-bold text-brand-subtext mb-2">연령대</label>
+            <select required id="auth-age" class="h-12 w-full bg-[#050505] border border-brand-border px-4 text-sm text-white rounded-sm focus:outline-none focus:border-brand-blue">
+              <option value="" disabled selected>선택해주세요</option>
+              <option value="20s">20대</option><option value="30s">30대</option><option value="40s">40대</option><option value="50s">50대 이상</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-brand-subtext mb-2">관심 카테고리</label>
+            <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+              <label class="flex items-center gap-2 p-3 bg-[#050505] border border-brand-border rounded-sm cursor-pointer hover:border-brand-blue">
+                <input type="checkbox" class="accent-brand-blue"> 정치
+              </label>
+              <label class="flex items-center gap-2 p-3 bg-[#050505] border border-brand-border rounded-sm cursor-pointer hover:border-brand-blue">
+                <input type="checkbox" class="accent-brand-blue"> 경제
+              </label>
+              <label class="flex items-center gap-2 p-3 bg-[#050505] border border-brand-border rounded-sm cursor-pointer hover:border-brand-blue">
+                <input type="checkbox" class="accent-brand-blue"> 사회
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="h-14 w-full bg-white text-black font-bold text-base rounded-sm hover:bg-gray-200 transition-colors mt-8">
+          진행하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    /* --- 스크롤 페이드인 애니메이션 (Intersection Observer) --- */
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    /* --- 데모 기능 스크립트 --- */
+    const demoData = {
+      pol: { title: "관련 입법 진행 현황", items: ["• 정당별 쟁점 조항 합의안 제출", "• 전문가 의견 수렴 청문회 진행 중"] },
+      eco: { title: "기준금리 동결 여파", items: ["• 금융통화위원회 기준금리 동결", "• 환율 변동성 확대 모니터링 강화"] }
+    };
+
+    function switchDemoTab(type) {
+      document.querySelectorAll('.demo-tab-btn').forEach(btn => {
+        btn.className = "demo-tab-btn px-4 py-1.5 text-xs font-bold border border-brand-border text-brand-subtext hover:text-white rounded-sm";
+      });
+      event.target.className = "demo-tab-btn px-4 py-1.5 text-xs font-bold border border-brand-blue bg-brand-blue/10 text-brand-blue rounded-sm";
+      
+      const data = demoData[type];
+      document.getElementById('demo-title').textContent = data.title;
+      document.getElementById('demo-list').innerHTML = data.items.map(item => `<li>${item}</li>`).join('');
+    }
+
+    function updateSlider(val) {
+      const desc = document.getElementById('slider-desc');
+      if (val < 45) desc.textContent = `A매체 프레임 우세 (${100-val}:${val}) - 실효성에 초점을 맞춘 보도 집중`;
+      else if (val > 55) desc.textContent = `B매체 프레임 우세 (${100-val}:${val}) - 비용 부담에 초점을 맞춘 보도 집중`;
+      else desc.textContent = `균형 상태 (${100-val}:${val}) - 두 매체의 시각이 균등하게 조율되었습니다.`;
+    }
+
+    function runChatSim(presetText = '') {
+      const input = document.getElementById('demo-chat-input');
+      const text = presetText || input.value.trim() || "질문 내용이 없습니다.";
+      if(presetText) input.value = presetText;
+      
+      const resBox = document.getElementById('demo-chat-result');
+      resBox.classList.remove('hidden');
+      resBox.textContent = "";
+      
+      const answer = `"${text}"에 대한 객관적 분석:\n해당 이슈는 과거 2021년 유사 법안 발의 당시와 비교할 때, 단기적 비용 부담(쟁점 A)과 장기적 이익(쟁점 B)이 상충하는 사안입니다.`;
+      
+      let i = 0;
+      clearInterval(window.chatTimer);
+      window.chatTimer = setInterval(() => {
+        if(i < answer.length) {
+          resBox.textContent += answer.charAt(i);
+          i++;
+        } else {
+          clearInterval(window.chatTimer);
+        }
+      }, 30);
+    }
+
+    /* --- 인증 모달 및 세션 관리 --- */
+    let authMode = 'signup';
+    const modal = document.getElementById('auth-modal');
+    const modalContent = document.getElementById('auth-modal-content');
+
+    function openAuthModal(mode) {
+      authMode = mode;
+      document.getElementById('modal-title').textContent = mode === 'signup' ? '에이전트 생성하기' : '로그인';
+      document.getElementById('auth-submit-btn').textContent = mode === 'signup' ? '가입 완료' : '로그인';
+      
+      const signupFields = document.getElementById('signup-fields');
+      const ageSelect = document.getElementById('auth-age');
+      if(mode === 'signup') {
+        signupFields.classList.remove('hidden');
+        ageSelect.setAttribute('required', 'true');
+      } else {
+        signupFields.classList.add('hidden');
+        ageSelect.removeAttribute('required');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('scale-95');
+      }, 10);
+    }
+
+    function closeAuthModal() {
+      modal.classList.add('opacity-0');
+      modalContent.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }, 300);
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      localStorage.setItem('newsagent_session', email);
+      alert(authMode === 'signup' ? '가입이 완료되었습니다.' : '로그인 성공');
+      closeAuthModal();
+      updateHeaderAuth();
+    }
+
+    function updateHeaderAuth() {
+      const session = localStorage.getItem('newsagent_session');
+      if (session) {
+        document.getElementById('auth-buttons').innerHTML = `
+          <span class="text-brand-subtext hidden sm:block">${session}</span>
+          <button onclick="logout()" class="h-12 px-4 border border-brand-border text-brand-text rounded-sm hover:bg-brand-card transition-colors">로그아웃</button>
+        `;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('newsagent_session');
+      location.reload();
+    }
+
+    window.onload = updateHeaderAuth;
+  </script>
+</body>
+</html>
